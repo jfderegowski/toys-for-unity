@@ -1,0 +1,14 @@
+{
+    "name": "com.fefek5.toys.Runtime",
+    "rootNamespace": "fefek5.Toys.Runtime",
+    "references": [],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

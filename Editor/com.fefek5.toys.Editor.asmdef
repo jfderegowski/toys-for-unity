@@ -1,0 +1,18 @@
+{
+    "name": "com.fefek5.toys.Editor",
+    "rootNamespace": "fefek5.Toys.Editor",
+    "references": [
+        "GUID:24e6c84d5ae449b3879ae45a3ea81b5f"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
