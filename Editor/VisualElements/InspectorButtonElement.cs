@@ -41,18 +41,38 @@ namespace fefek5.Toys.Editor.VisualElements
 
             if (_method == null)
             {
-                var refreshButton = new Button();
-                
-                Add(refreshButton);
-                
+                style.flexDirection = FlexDirection.Row;
+                _button.style.flexGrow = 1;
                 _button.SetEnabled(false);
                 _button.tooltip = $"Method '{methodName}' not found on {target?.GetType().Name ?? "null target"}";
+
+                var refreshIcon = EditorGUIUtility.IconContent("Refresh").image
+                                  ?? EditorGUIUtility.IconContent("d_Refresh").image;
+
+                var refreshButton = new Button {
+                    tooltip = "Refresh",
+                    style = {
+                        width = 20,
+                        height = 20,
+                        paddingLeft = 0,
+                        paddingRight = 0,
+                        paddingTop = 0,
+                        paddingBottom = 0,
+                        marginLeft = 2,
+                    }
+                };
+
+                if (refreshIcon != null) 
+                    refreshButton.iconImage = Background.FromTexture2D((Texture2D)refreshIcon);
+                else refreshButton.text = "↻";
+
+                Add(refreshButton);
+                
                 return;
             }
 
             DrawParameters();
 
-            // text = label ?? ObjectNames.NicifyVariableName(methodName);
             _button.clicked += CallMethod;
         }
 
