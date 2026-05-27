@@ -9,7 +9,7 @@ using UnityEngine.UIElements;
 namespace fefek5.Toys.Editor.Editors
 {
     [CustomEditor(typeof(MonoBehaviour), true), CanEditMultipleObjects]
-    public class MonoBehaviourEditro : UnityEditor.Editor
+    public class MonoBehaviourEditor : UnityEditor.Editor
     {
         private const BindingFlags METHOD_FLAGS = BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public |
                                                   BindingFlags.NonPublic | BindingFlags.DeclaredOnly;
@@ -31,7 +31,9 @@ namespace fefek5.Toys.Editor.Editors
 
                 var label = attr.Label ?? ObjectNames.NicifyVariableName(method.Name);
 
-                root.Add(new InspectorButton(target, method.Name, label));
+                var inspectorButton = new InspectorButtonElement(target, method.Name, label);
+                
+                root.Add(inspectorButton);
             }
 
             return root;

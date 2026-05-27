@@ -1,3 +1,4 @@
+using System;
 using fefek5.Toys.Runtime.Attributes;
 using fefek5.Toys.Runtime.Types;
 using UnityEngine;
@@ -6,18 +7,25 @@ namespace Tests
 {
     public class TestToys : MonoBehaviour
     {
-        [SerializeField] private InspectorButton _button = new InspectorButton(nameof(TestFromStruct));
+        [SerializeField] private InspectorButton _button = new(nameof(Method));
 
-        [InspectorButton("Test From Struct")]
-        public void TestFromStruct()
+        [SerializeField] private SomeStruct SomeStruct;
+
+        [InspectorButton("[" + nameof(TestToys) + "]" + "[" + nameof(Method) + "]")]
+        public void Method(int number, ScriptableObject so)
         {
-            Debug.Log("TestFromStruct");
+            Debug.Log($"[{nameof(TestToys)}][{nameof(Method)}]: {number}]");
         }
+    }
 
-        [InspectorButton("Test From Attribute")]
-        public void TestFromAttribute()
+    [Serializable]
+    public class SomeStruct
+    {
+        [SerializeField] private InspectorButton _button = new(nameof(Method));
+        
+        public void Method(int number, ScriptableObject so)
         {
-            Debug.Log("TestFromAttribute");
+            Debug.Log($"[{nameof(SomeStruct)}][{nameof(Method)}]: {number}]");
         }
     }
 }

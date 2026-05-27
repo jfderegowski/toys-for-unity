@@ -6,13 +6,15 @@ namespace fefek5.Toys.Runtime.Types
     [Serializable]
     public struct InspectorButton
     {
-        [SerializeField] private string methodName;
+        public string MethodName => _methodName;
 
-        public string MethodName => methodName;
+        [SerializeField] private string _methodName;
+        [SerializeField] private string _buttonLabel;
 
-        public InspectorButton(string methodName)
+        public InspectorButton(string methodName, string buttonLabel = null)
         {
-            this.methodName = methodName;
+            _methodName = methodName;
+            _buttonLabel = buttonLabel;
         }
     }
 }
