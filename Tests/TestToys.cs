@@ -8,13 +8,14 @@ namespace Tests
     public class TestToys : MonoBehaviour
     {
         [SerializeField] private InspectorButton _button = new(nameof(Method));
+        [SerializeField] private InspectorButton _button2 = new(nameof(Method));
 
         [SerializeField] private SomeStruct SomeStruct;
 
         [InspectorButton("[" + nameof(TestToys) + "]" + "[" + nameof(Method) + "]")]
         public void Method(int number, ScriptableObject so)
         {
-            Debug.Log($"[{nameof(TestToys)}][{nameof(Method)}]: {number}]");
+            Debug.Log($"[{nameof(TestToys)}][{nameof(Method)}]: {number}]", so);
         }
     }
 
@@ -25,7 +26,7 @@ namespace Tests
         
         public void Method(int number, ScriptableObject so)
         {
-            Debug.Log($"[{nameof(SomeStruct)}][{nameof(Method)}]: {number}]");
+            Debug.Log($"[{nameof(SomeStruct)}][{nameof(Method)}]: {number}]", so);
         }
     }
 }

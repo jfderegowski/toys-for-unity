@@ -27,7 +27,6 @@ namespace fefek5.Toys.Editor.Editors
             {
                 var attr = method.GetCustomAttribute<InspectorButtonAttribute>();
                 if (attr == null) continue;
-                if (method.GetParameters().Length != 0) continue;
 
                 var label = attr.Label ?? ObjectNames.NicifyVariableName(method.Name);
 

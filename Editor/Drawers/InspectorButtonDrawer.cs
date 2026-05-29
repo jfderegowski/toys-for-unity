@@ -19,7 +19,7 @@ namespace fefek5.Toys.Editor.Drawers
             if (string.IsNullOrEmpty(buttonLabel))
                 buttonLabel = ObjectNames.NicifyVariableName(methodName);
 
-            var isnpectorButton = new InspectorButtonElement(target, methodName, buttonLabel);
+            var isnpectorButton = new InspectorButtonElement(target, methodName, buttonLabel, property);
 
             return isnpectorButton;
         }
