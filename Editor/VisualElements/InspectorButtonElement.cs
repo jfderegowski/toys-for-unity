@@ -64,9 +64,44 @@ namespace fefek5.Toys.Editor.VisualElements
                 return;
             }
 
-            Add(button);
-            DrawParameters();
+            var body = DrawParameters();
+
+            if (body == null)
+            {
+                Add(button);
+                return;
+            }
+
+            // Header: strzałka zwijania + button. Ramka wychodzi z headera i okala parametry.
+            var foldout = new Button { text = FOLDOUT_EXPANDED };
+            var header = new VisualElement { style = { flexDirection = FlexDirection.Row } };
+
+            button.style.flexGrow = 1;
+            header.Add(foldout);
+            header.Add(button);
+
+            foldout.clicked += () =>
+            {
+                var collapsed = body.style.display == DisplayStyle.None;
+                body.style.display = collapsed ? DisplayStyle.Flex : DisplayStyle.None;
+                foldout.text = collapsed ? FOLDOUT_EXPANDED : FOLDOUT_COLLAPSED;
+
+                // Zwinięty: header zaokrąglony też u dołu. Rozwinięty: płaski (łączy się z body).
+                var bottomRadius = collapsed ? 0 : CORNER_RADIUS;
+                header.style.borderBottomLeftRadius = bottomRadius;
+                header.style.borderBottomRightRadius = bottomRadius;
+                foldout.style.borderBottomLeftRadius = bottomRadius;
+                button.style.borderBottomRightRadius = bottomRadius;
+            };
+
+            Add(header);
+            Add(body);
+            FrameWithButton(header, button, foldout, body);
         }
+
+        private const string FOLDOUT_EXPANDED = "▼";
+        private const string FOLDOUT_COLLAPSED = "▶";
+        private const int CORNER_RADIUS = 3; // jak podstawowy button Unity
 
         private void BuildMethodMissingUI(Button button, string methodName)
         {
@@ -114,6 +149,78 @@ namespace fefek5.Toys.Editor.VisualElements
         }
 
         private object[] GetParameters() => _parameterValues ?? Array.Empty<object>();
+
+        // Header (strzałka + button) = nagłówek (zaokrąglony u góry, płaski na dole),
+        // z którego wychodzi ramka okalająca parametry poniżej.
+        private static void FrameWithButton(VisualElement header, Button button, Button foldout, VisualElement body)
+        {
+            var border = new Color(0f, 0f, 0f, 0.4f);
+
+            // Header jako nagłówek — ramka i zaokrąglenie tylko u góry, dół płaski
+            header.style.borderTopWidth = 1;
+            header.style.borderBottomWidth = 1;
+            header.style.borderLeftWidth = 1;
+            header.style.borderRightWidth = 1;
+
+            header.style.borderTopColor = border;
+            header.style.borderBottomColor = border;
+            header.style.borderLeftColor = border;
+            header.style.borderRightColor = border;
+
+            header.style.borderTopLeftRadius = CORNER_RADIUS;
+            header.style.borderTopRightRadius = CORNER_RADIUS;
+
+            // Przycinanie dzieci do zaokrąglonych rogów (inaczej kwadratowy button je zakrywa)
+            header.style.overflow = Overflow.Hidden;
+
+            // Marginesy poziome jak u zwykłego buttona
+            header.style.marginLeft = 3;
+            header.style.marginRight = 3;
+
+            // Wewnętrzne buttony bez własnych ramek/zaokrągleń/marginesów — ramkę daje header
+            foreach (var inner in new[] { button, foldout })
+            {
+                inner.style.borderTopWidth = 0;
+                inner.style.borderBottomWidth = 0;
+                inner.style.borderLeftWidth = 0;
+                inner.style.borderRightWidth = 0;
+
+                inner.style.borderTopLeftRadius = 0;
+                inner.style.borderTopRightRadius = 0;
+                inner.style.borderBottomLeftRadius = 0;
+                inner.style.borderBottomRightRadius = 0;
+
+                inner.style.marginTop = 0;
+                inner.style.marginBottom = 0;
+                inner.style.marginLeft = 0;
+                inner.style.marginRight = 0;
+            }
+
+            foldout.style.width = 22;
+            foldout.style.paddingLeft = 0;
+            foldout.style.paddingRight = 0;
+
+            // Body — ramka kontynuuje z headera (bez górnej krawędzi), dół zaokrąglony
+            body.style.borderBottomWidth = 1;
+            body.style.borderLeftWidth = 1;
+            body.style.borderRightWidth = 1;
+
+            body.style.borderBottomColor = border;
+            body.style.borderLeftColor = border;
+            body.style.borderRightColor = border;
+
+            body.style.borderBottomLeftRadius = CORNER_RADIUS;
+            body.style.borderBottomRightRadius = CORNER_RADIUS;
+
+            body.style.paddingTop = 4;
+            body.style.paddingBottom = 4;
+            body.style.paddingLeft = 4;
+            body.style.paddingRight = 4;
+
+            body.style.marginLeft = 3;
+            body.style.marginRight = 3;
+            body.style.marginBottom = 2;
+        }
 
         private void ResetToScriptDefault()
         {
@@ -264,12 +371,12 @@ namespace fefek5.Toys.Editor.VisualElements
             return null;
         }
 
-        private void DrawParameters()
+        private VisualElement DrawParameters()
         {
             var parameters = _method.GetParameters();
-            if (parameters.Length <= 0) return;
+            if (parameters.Length <= 0) return null;
 
-            if (!parameters.All(parameter => IsUnitySerializable(parameter.ParameterType))) return;
+            if (!parameters.All(parameter => IsUnitySerializable(parameter.ParameterType))) return null;
 
             var root = new VisualElement();
             var values = new object[parameters.Length];
@@ -294,7 +401,7 @@ namespace fefek5.Toys.Editor.VisualElements
                 if (field != null) root.Add(field);
             }
 
-            Add(root);
+            return root;
         }
 
         private static object GetDefaultValue(Type type) =>
