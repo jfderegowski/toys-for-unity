@@ -24,11 +24,6 @@ namespace fefek5.Toys.Editor.VisualElements
         {
             focusable = false;
             
-            // style.marginLeft = 0;
-            // style.marginTop = 0;
-            // style.marginRight = 0;
-            // style.marginBottom = 0;
-            
             style.borderLeftWidth = 0;
             style.borderTopWidth = 0;
             style.borderRightWidth = 0;

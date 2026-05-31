@@ -13,7 +13,6 @@ namespace fefek5.Toys.Editor.VisualElements
     public class InspectorButtonElement : VisualElement
     {
         private object[] _parameterValues;
-        private Type[] _parameterTypes;
 
         private readonly object _target;
         private readonly SerializedProperty _property;
@@ -40,7 +39,7 @@ namespace fefek5.Toys.Editor.VisualElements
             style.marginTop = 1;
             style.marginRight = -2;
             style.marginBottom = 1;
-            
+
             _target = target;
             _property = property;
             Build(methodName, buttonLabel);
@@ -50,7 +49,6 @@ namespace fefek5.Toys.Editor.VisualElements
         {
             Clear();
             _parameterValues = null;
-            _parameterTypes = null;
             style.flexDirection = FlexDirection.Column;
 
             _methodName = methodName;
@@ -86,7 +84,7 @@ namespace fefek5.Toys.Editor.VisualElements
             button.style.borderLeftWidth = 0;
             button.style.marginBottom = 0;
             button.style.paddingRight = 28;
-            
+
             // Header: [toggle][button] w jednym rzędzie, parametry pod spodem.
             var toggle = new Button {
                 style = {
@@ -425,6 +423,7 @@ namespace fefek5.Toys.Editor.VisualElements
                 if (field != null) return field;
                 type = type.BaseType;
             }
+
             return null;
         }
 
@@ -453,11 +452,9 @@ namespace fefek5.Toys.Editor.VisualElements
                 }
             };
             var values = new object[parameters.Length];
-            var types = new Type[parameters.Length];
 
             // _parameterValues musi istnieć zanim odpalą się callbacki pól
             _parameterValues = values;
-            _parameterTypes = types;
 
             for (var i = 0; i < parameters.Length; i++)
             {
@@ -466,7 +463,6 @@ namespace fefek5.Toys.Editor.VisualElements
                 var label = ObjectNames.NicifyVariableName(parameter.Name);
 
                 values[i] = GetDefaultValue(type);
-                types[i] = type;
 
                 var index = i; // capture dla closure
                 var field = BuildField(type, label, values[i], value => _parameterValues[index] = value);
@@ -484,48 +480,27 @@ namespace fefek5.Toys.Editor.VisualElements
         // onChange zapisuje aktualną wartość bezpośrednio do tablicy parametrów.
         private static VisualElement BuildField(Type type, string label, object initial, Action<object> onChange)
         {
-            if (type == typeof(int))
-            {
-                var field = new IntegerField(label) { value = (int)initial };
-                field.RegisterValueChangedCallback(evt => onChange(evt.newValue));
-                return field;
-            }
+            // Typy mapujące się 1:1 na BaseField<T> — wartość bez konwersji.
+            if (type == typeof(int)) return Field<IntegerField, int>(label, (int)initial, onChange);
+            if (type == typeof(long)) return Field<LongField, long>(label, (long)initial, onChange);
+            if (type == typeof(float)) return Field<FloatField, float>(label, (float)initial, onChange);
+            if (type == typeof(double)) return Field<DoubleField, double>(label, (double)initial, onChange);
+            if (type == typeof(bool)) return Field<Toggle, bool>(label, (bool)initial, onChange);
+            if (type == typeof(string)) return Field<TextField, string>(label, (string)initial ?? string.Empty, onChange);
+            if (type == typeof(Vector2)) return Field<Vector2Field, Vector2>(label, (Vector2)initial, onChange);
+            if (type == typeof(Vector3)) return Field<Vector3Field, Vector3>(label, (Vector3)initial, onChange);
+            if (type == typeof(Vector4)) return Field<Vector4Field, Vector4>(label, (Vector4)initial, onChange);
+            if (type == typeof(Vector2Int)) return Field<Vector2IntField, Vector2Int>(label, (Vector2Int)initial, onChange);
+            if (type == typeof(Vector3Int)) return Field<Vector3IntField, Vector3Int>(label, (Vector3Int)initial, onChange);
+            if (type == typeof(Rect)) return Field<RectField, Rect>(label, (Rect)initial, onChange);
+            if (type == typeof(RectInt)) return Field<RectIntField, RectInt>(label, (RectInt)initial, onChange);
+            if (type == typeof(Bounds)) return Field<BoundsField, Bounds>(label, (Bounds)initial, onChange);
+            if (type == typeof(BoundsInt)) return Field<BoundsIntField, BoundsInt>(label, (BoundsInt)initial, onChange);
+            if (type == typeof(Color)) return Field<ColorField, Color>(label, (Color)initial, onChange);
+            if (type == typeof(AnimationCurve)) return Field<CurveField, AnimationCurve>(label, (AnimationCurve)initial ?? new AnimationCurve(), onChange);
+            if (type == typeof(Gradient)) return Field<GradientField, Gradient>(label, (Gradient)initial ?? new Gradient(), onChange);
 
-            if (type == typeof(long))
-            {
-                var field = new LongField(label) { value = (long)initial };
-                field.RegisterValueChangedCallback(evt => onChange(evt.newValue));
-                return field;
-            }
-
-            if (type == typeof(float))
-            {
-                var field = new FloatField(label) { value = (float)initial };
-                field.RegisterValueChangedCallback(evt => onChange(evt.newValue));
-                return field;
-            }
-
-            if (type == typeof(double))
-            {
-                var field = new DoubleField(label) { value = (double)initial };
-                field.RegisterValueChangedCallback(evt => onChange(evt.newValue));
-                return field;
-            }
-
-            if (type == typeof(bool))
-            {
-                var field = new Toggle(label) { value = (bool)initial };
-                field.RegisterValueChangedCallback(evt => onChange(evt.newValue));
-                return field;
-            }
-
-            if (type == typeof(string))
-            {
-                var field = new TextField(label) { value = (string)initial ?? string.Empty };
-                field.RegisterValueChangedCallback(evt => onChange(evt.newValue));
-                return field;
-            }
-
+            // Typy wymagające konwersji wartości lub specjalnego konstruktora.
             if (type == typeof(char))
             {
                 var field = new TextField(label, 1, false, false, '\0')
@@ -550,94 +525,10 @@ namespace fefek5.Toys.Editor.VisualElements
                 return field;
             }
 
-            if (type == typeof(Vector2))
-            {
-                var field = new Vector2Field(label) { value = (Vector2)initial };
-                field.RegisterValueChangedCallback(evt => onChange(evt.newValue));
-                return field;
-            }
-
-            if (type == typeof(Vector3))
-            {
-                var field = new Vector3Field(label) { value = (Vector3)initial };
-                field.RegisterValueChangedCallback(evt => onChange(evt.newValue));
-                return field;
-            }
-
-            if (type == typeof(Vector4))
-            {
-                var field = new Vector4Field(label) { value = (Vector4)initial };
-                field.RegisterValueChangedCallback(evt => onChange(evt.newValue));
-                return field;
-            }
-
-            if (type == typeof(Vector2Int))
-            {
-                var field = new Vector2IntField(label) { value = (Vector2Int)initial };
-                field.RegisterValueChangedCallback(evt => onChange(evt.newValue));
-                return field;
-            }
-
-            if (type == typeof(Vector3Int))
-            {
-                var field = new Vector3IntField(label) { value = (Vector3Int)initial };
-                field.RegisterValueChangedCallback(evt => onChange(evt.newValue));
-                return field;
-            }
-
-            if (type == typeof(Rect))
-            {
-                var field = new RectField(label) { value = (Rect)initial };
-                field.RegisterValueChangedCallback(evt => onChange(evt.newValue));
-                return field;
-            }
-
-            if (type == typeof(RectInt))
-            {
-                var field = new RectIntField(label) { value = (RectInt)initial };
-                field.RegisterValueChangedCallback(evt => onChange(evt.newValue));
-                return field;
-            }
-
-            if (type == typeof(Bounds))
-            {
-                var field = new BoundsField(label) { value = (Bounds)initial };
-                field.RegisterValueChangedCallback(evt => onChange(evt.newValue));
-                return field;
-            }
-
-            if (type == typeof(BoundsInt))
-            {
-                var field = new BoundsIntField(label) { value = (BoundsInt)initial };
-                field.RegisterValueChangedCallback(evt => onChange(evt.newValue));
-                return field;
-            }
-
-            if (type == typeof(Color))
-            {
-                var field = new ColorField(label) { value = (Color)initial };
-                field.RegisterValueChangedCallback(evt => onChange(evt.newValue));
-                return field;
-            }
-
             if (type == typeof(Color32))
             {
                 var field = new ColorField(label) { value = (Color32)initial };
                 field.RegisterValueChangedCallback(evt => onChange((Color32)evt.newValue));
-                return field;
-            }
-
-            if (type == typeof(AnimationCurve))
-            {
-                var field = new CurveField(label) { value = (AnimationCurve)initial ?? new AnimationCurve() };
-                field.RegisterValueChangedCallback(evt => onChange(evt.newValue));
-                return field;
-            }
-
-            if (type == typeof(Gradient))
-            {
-                var field = new GradientField(label) { value = (Gradient)initial ?? new Gradient() };
-                field.RegisterValueChangedCallback(evt => onChange(evt.newValue));
                 return field;
             }
 
@@ -646,8 +537,7 @@ namespace fefek5.Toys.Editor.VisualElements
                 var quaternion = (Quaternion)initial;
                 var field = new Vector4Field(label)
                     { value = new Vector4(quaternion.x, quaternion.y, quaternion.z, quaternion.w) };
-                field.RegisterValueChangedCallback(evt =>
-                {
+                field.RegisterValueChangedCallback(evt => {
                     var vector = evt.newValue;
                     onChange(new Quaternion(vector.x, vector.y, vector.z, vector.w));
                 });
@@ -663,8 +553,7 @@ namespace fefek5.Toys.Editor.VisualElements
 
             if (typeof(UnityEngine.Object).IsAssignableFrom(type))
             {
-                var field = new ObjectField(label)
-                {
+                var field = new ObjectField(label) {
                     objectType = type,
                     allowSceneObjects = !typeof(ScriptableObject).IsAssignableFrom(type),
                     value = (UnityEngine.Object)initial
@@ -675,6 +564,15 @@ namespace fefek5.Toys.Editor.VisualElements
 
             // Niewspierany typ (np. custom [Serializable]) — brak pola, przekaże default.
             return null;
+        }
+
+        // Tworzy proste BaseField<TValue>, ustawia etykietę/wartość i podpina callback.
+        private static VisualElement Field<TField, TValue>(string label, TValue initial, Action<object> onChange)
+            where TField : BaseField<TValue>, new()
+        {
+            var field = new TField { label = label, value = initial };
+            field.RegisterValueChangedCallback(evt => onChange(evt.newValue));
+            return field;
         }
 
         private static bool IsUnitySerializable(Type type)
