@@ -36,6 +36,11 @@ namespace fefek5.Toys.Editor.VisualElements
 
         public InspectorButtonElement(object target, string methodName, string buttonLabel, SerializedProperty property)
         {
+            style.marginLeft = 3;
+            style.marginTop = 1;
+            style.marginRight = -2;
+            style.marginBottom = 1;
+            
             _target = target;
             _property = property;
             Build(methodName, buttonLabel);
@@ -55,7 +60,13 @@ namespace fefek5.Toys.Editor.VisualElements
                 : null;
 
             var button = new Button(CallMethod) {
-                text = buttonLabel
+                text = buttonLabel,
+                style = {
+                    marginLeft = 0,
+                    marginTop = 0,
+                    marginRight = 0,
+                    marginBottom = 0,
+                }
             };
 
             if (_method == null)
@@ -64,44 +75,162 @@ namespace fefek5.Toys.Editor.VisualElements
                 return;
             }
 
-            var body = DrawParameters();
+            var parameters = CreateParametersElement();
 
-            if (body == null)
+            if (parameters == null)
             {
                 Add(button);
                 return;
             }
 
-            // Header: strzałka zwijania + button. Ramka wychodzi z headera i okala parametry.
-            var foldout = new Button { text = FOLDOUT_EXPANDED };
-            var header = new VisualElement { style = { flexDirection = FlexDirection.Row } };
+            button.style.borderLeftWidth = 0;
+            button.style.marginBottom = 0;
+            button.style.paddingRight = 28;
+            
+            // Header: [toggle][button] w jednym rzędzie, parametry pod spodem.
+            var toggle = new Button {
+                style = {
+                    width = 22,
+                    marginLeft = 0,
+                    marginTop = 0,
+                    marginRight = 0,
+                    marginBottom = 0,
+                }
+            };
+            var icon = ApplyDropdownIcon(toggle);
 
             button.style.flexGrow = 1;
-            header.Add(foldout);
+            button.style.marginLeft = 0;
+
+            var header = new VisualElement { style = { flexDirection = FlexDirection.Row } };
+            header.Add(toggle);
             header.Add(button);
 
-            foldout.clicked += () =>
-            {
-                var collapsed = body.style.display == DisplayStyle.None;
-                body.style.display = collapsed ? DisplayStyle.Flex : DisplayStyle.None;
-                foldout.text = collapsed ? FOLDOUT_EXPANDED : FOLDOUT_COLLAPSED;
+            // Stan rozwinięcia pamiętany w sesji (static dict — czyści się przy
+            // domain reload, bez zapisu do plików).
+            var key = ExpandKey(methodName);
+            var expanded = _expandedState.TryGetValue(key, out var saved) && saved;
 
-                // Zwinięty: header zaokrąglony też u dołu. Rozwinięty: płaski (łączy się z body).
-                var bottomRadius = collapsed ? 0 : CORNER_RADIUS;
-                header.style.borderBottomLeftRadius = bottomRadius;
-                header.style.borderBottomRightRadius = bottomRadius;
-                foldout.style.borderBottomLeftRadius = bottomRadius;
-                button.style.borderBottomRightRadius = bottomRadius;
-            };
+            parameters.style.display = expanded ? DisplayStyle.Flex : DisplayStyle.None;
+
+            void SetExpanded(bool value)
+            {
+                expanded = value;
+                parameters.style.display = value ? DisplayStyle.Flex : DisplayStyle.None;
+                _expandedState[key] = value;
+                UpdateCorners(toggle, button, parameters, icon, value);
+            }
+
+            // Stary handler (re-Build na tym samym elemencie) odpinamy, żeby nie dublować.
+            if (_applyExpand != null) _setAllExpanded -= _applyExpand;
+            _applyExpand = SetExpanded;
+            _setAllExpanded += _applyExpand;
+            RegisterCallback<DetachFromPanelEvent>(_ => {
+                if (_applyExpand != null) _setAllExpanded -= _applyExpand;
+            });
+
+            // ClickEvent zamiast clicked — daje dostęp do altKey.
+            toggle.RegisterCallback<ClickEvent>(evt => {
+                var value = parameters.style.display == DisplayStyle.None;
+                if (evt.altKey) _setAllExpanded?.Invoke(value); // Alt = wszystkie
+                else SetExpanded(value);
+            });
 
             Add(header);
-            Add(body);
-            FrameWithButton(header, button, foldout, body);
+            Add(parameters);
+
+            UpdateCorners(toggle, button, parameters, icon, expanded);
         }
 
-        private const string FOLDOUT_EXPANDED = "▼";
-        private const string FOLDOUT_COLLAPSED = "▶";
+        // Stan rozwinięcia per przycisk, trzymany tylko w pamięci (sesja edytora).
+        private static readonly Dictionary<string, bool> _expandedState = new();
+
+        // Wszystkie żywe przyciski — Alt+klik toggla działa na każdy.
+        private static event Action<bool> _setAllExpanded;
+        private Action<bool> _applyExpand;
+
+        private string ExpandKey(string methodName) =>
+            $"{_target?.GetType().FullName}:{_property?.propertyPath ?? methodName}";
+
         private const int CORNER_RADIUS = 3; // jak podstawowy button Unity
+
+        // [toggle][button] w rzędzie, parametry pod spodem.
+        // Toggle trzyma lewe rogi, button prawe; wewnętrzne (stykające się) rogi = 0.
+        // Rozwinięte: dolne rogi headera płaskie (łączy się z parametrami), parametry
+        // dostają zaokrąglony dół. Schowane: header zaokrąglony też na dole.
+        private static void UpdateCorners(
+            Button toggle, Button button, VisualElement parameters, VisualElement icon, bool expanded)
+        {
+            var bottom = expanded ? 0 : CORNER_RADIUS;
+
+            // Obracamy samą ikonkę (nie cały button, bo rozjeżdża layout).
+            // Schowane: w prawo (▸). Rozwinięte: w dół (▾).
+            icon.style.rotate = new StyleRotate(
+                new Rotate(new Angle(expanded ? 0 : -90, AngleUnit.Degree)));
+
+            toggle.style.borderTopLeftRadius = CORNER_RADIUS;
+            toggle.style.borderTopRightRadius = 0;
+            toggle.style.borderBottomLeftRadius = bottom;
+            toggle.style.borderBottomRightRadius = 0;
+
+            button.style.borderTopLeftRadius = 0;
+            button.style.borderTopRightRadius = CORNER_RADIUS;
+            button.style.borderBottomLeftRadius = 0;
+            button.style.borderBottomRightRadius = bottom;
+
+            parameters.style.borderBottomLeftRadius = CORNER_RADIUS;
+            parameters.style.borderBottomRightRadius = CORNER_RADIUS;
+        }
+
+        private const string DROPDOWN_ICON_NAME = "DropdownArrow";
+
+        // Zwraca element ikonki (do obracania) — osobny child, nie iconImage buttona,
+        // żeby obrót nie ruszał layoutu toggla. Obrót animowany przez transition.
+        private static VisualElement ApplyDropdownIcon(Button toggle)
+        {
+            var texture = LoadIcon(DROPDOWN_ICON_NAME);
+
+            Color tint = new Color32(0x68, 0x68, 0x68, 0xFF);
+
+            VisualElement icon;
+
+            if (texture != null)
+            {
+                icon = new Image {
+                    image = texture,
+                    tintColor = tint,
+                    style = { width = 12, height = 12 }
+                };
+            }
+            else
+            {
+                icon = new Label("▾") {
+                    style = { unityTextAlign = TextAnchor.MiddleCenter, color = tint }
+                };
+            }
+
+            icon.style.alignSelf = Align.Center;
+            // Ikonka nie może łapać kliknięć — inaczej button toggla ich nie dostaje.
+            icon.pickingMode = PickingMode.Ignore;
+
+            // Płynna animacja obrotu.
+            icon.style.transitionProperty = new List<StylePropertyName> { "rotate" };
+            icon.style.transitionDuration = new List<TimeValue> { new(0.15f, TimeUnit.Second) };
+            icon.style.transitionTimingFunction =
+                new List<EasingFunction> { new(EasingMode.EaseOutCubic) };
+
+            toggle.Add(icon);
+            return icon;
+        }
+
+        private static Texture2D LoadIcon(string name)
+        {
+            var guids = AssetDatabase.FindAssets($"{name} t:Texture2D");
+            if (guids.Length <= 0) return null;
+
+            var path = AssetDatabase.GUIDToAssetPath(guids[0]);
+            return AssetDatabase.LoadAssetAtPath<Texture2D>(path);
+        }
 
         private void BuildMethodMissingUI(Button button, string methodName)
         {
@@ -149,78 +278,6 @@ namespace fefek5.Toys.Editor.VisualElements
         }
 
         private object[] GetParameters() => _parameterValues ?? Array.Empty<object>();
-
-        // Header (strzałka + button) = nagłówek (zaokrąglony u góry, płaski na dole),
-        // z którego wychodzi ramka okalająca parametry poniżej.
-        private static void FrameWithButton(VisualElement header, Button button, Button foldout, VisualElement body)
-        {
-            var border = new Color(0f, 0f, 0f, 0.4f);
-
-            // Header jako nagłówek — ramka i zaokrąglenie tylko u góry, dół płaski
-            header.style.borderTopWidth = 1;
-            header.style.borderBottomWidth = 1;
-            header.style.borderLeftWidth = 1;
-            header.style.borderRightWidth = 1;
-
-            header.style.borderTopColor = border;
-            header.style.borderBottomColor = border;
-            header.style.borderLeftColor = border;
-            header.style.borderRightColor = border;
-
-            header.style.borderTopLeftRadius = CORNER_RADIUS;
-            header.style.borderTopRightRadius = CORNER_RADIUS;
-
-            // Przycinanie dzieci do zaokrąglonych rogów (inaczej kwadratowy button je zakrywa)
-            header.style.overflow = Overflow.Hidden;
-
-            // Marginesy poziome jak u zwykłego buttona
-            header.style.marginLeft = 3;
-            header.style.marginRight = 3;
-
-            // Wewnętrzne buttony bez własnych ramek/zaokrągleń/marginesów — ramkę daje header
-            foreach (var inner in new[] { button, foldout })
-            {
-                inner.style.borderTopWidth = 0;
-                inner.style.borderBottomWidth = 0;
-                inner.style.borderLeftWidth = 0;
-                inner.style.borderRightWidth = 0;
-
-                inner.style.borderTopLeftRadius = 0;
-                inner.style.borderTopRightRadius = 0;
-                inner.style.borderBottomLeftRadius = 0;
-                inner.style.borderBottomRightRadius = 0;
-
-                inner.style.marginTop = 0;
-                inner.style.marginBottom = 0;
-                inner.style.marginLeft = 0;
-                inner.style.marginRight = 0;
-            }
-
-            foldout.style.width = 22;
-            foldout.style.paddingLeft = 0;
-            foldout.style.paddingRight = 0;
-
-            // Body — ramka kontynuuje z headera (bez górnej krawędzi), dół zaokrąglony
-            body.style.borderBottomWidth = 1;
-            body.style.borderLeftWidth = 1;
-            body.style.borderRightWidth = 1;
-
-            body.style.borderBottomColor = border;
-            body.style.borderLeftColor = border;
-            body.style.borderRightColor = border;
-
-            body.style.borderBottomLeftRadius = CORNER_RADIUS;
-            body.style.borderBottomRightRadius = CORNER_RADIUS;
-
-            body.style.paddingTop = 4;
-            body.style.paddingBottom = 4;
-            body.style.paddingLeft = 4;
-            body.style.paddingRight = 4;
-
-            body.style.marginLeft = 3;
-            body.style.marginRight = 3;
-            body.style.marginBottom = 2;
-        }
 
         private void ResetToScriptDefault()
         {
@@ -371,14 +428,30 @@ namespace fefek5.Toys.Editor.VisualElements
             return null;
         }
 
-        private VisualElement DrawParameters()
+        private VisualElement CreateParametersElement()
         {
             var parameters = _method.GetParameters();
             if (parameters.Length <= 0) return null;
 
             if (!parameters.All(parameter => IsUnitySerializable(parameter.ParameterType))) return null;
 
-            var root = new VisualElement();
+            var defaultBackgroundStyleColor = style.backgroundColor;
+            var defaultBackgroundColor = defaultBackgroundStyleColor.value;
+
+            var root = new VisualElement() {
+                style = {
+                    backgroundColor = new StyleColor(Color.Lerp(defaultBackgroundColor, Color.black, 0.1f)),
+                    borderBottomLeftRadius = 4,
+                    borderBottomRightRadius = 4,
+                    // marginRight = 3,
+                    // marginLeft = 3,
+                    // marginBottom = 1,
+                    paddingLeft = 6,
+                    paddingTop = 6,
+                    paddingRight = 8,
+                    paddingBottom = 6,
+                }
+            };
             var values = new object[parameters.Length];
             var types = new Type[parameters.Length];
 

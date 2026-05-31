@@ -7,10 +7,12 @@ namespace Tests
 {
     public class TestToys : MonoBehaviour
     {
-        [SerializeField] private InspectorButton _button = new(nameof(Method3));
-        [SerializeField] private InspectorButton _button2 = new(nameof(Method3));
+        [SerializeField] private InspectorButton _button = new(nameof(Method3), "___");
+        [SerializeField] private InspectorButton _button5 = new(nameof(Method2), "___");
+        [SerializeField] private InspectorButton _button3 = new(nameof(Method3), "___");
 
         [SerializeField] private SomeStruct SomeStruct;
+        [SerializeField] private string _someString;
 
         [InspectorButton("[" + nameof(TestToys) + "]" + "[" + nameof(Method3) + "]")]
         public void Method3(int number, ScriptableObject so)
@@ -28,8 +30,11 @@ namespace Tests
     [Serializable]
     public class SomeStruct
     {
+        [SerializeField] private string _someString;
         [SerializeField] private InspectorButton _button = new(nameof(Method));
-        
+        [SerializeField] private string _someString2;
+        [SerializeField] private string _someString3;
+
         [InspectorButton("[" + nameof(SomeStruct) + "]" + "[" + nameof(Method) + "]")]
         public void Method(int number, ScriptableObject so)
         {
