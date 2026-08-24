@@ -1,0 +1,11 @@
+{
+  "name": "com.fefek5.toys-for-unity",
+  "version": "0.0.1",
+  "displayName": "Toys",
+  "description": "Collection of useful toys for Unity.",
+  "unity": "6000.0",
+  "author": {
+    "name": "fefek5",
+    "url": "https://github.com/jfderegowski"
+  }
+}
