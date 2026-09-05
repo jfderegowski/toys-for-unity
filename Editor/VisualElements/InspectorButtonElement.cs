@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -16,6 +16,7 @@ namespace fefek5.Toys.Editor.VisualElements
 
         private readonly object _target;
         private readonly SerializedProperty _property;
+        private readonly Action _clickEvent;
 
         private string _methodName;
         private string _buttonLabel;
@@ -35,14 +36,30 @@ namespace fefek5.Toys.Editor.VisualElements
 
         public InspectorButtonElement(object target, string methodName, string buttonLabel, SerializedProperty property)
         {
-            style.marginLeft = 3;
-            style.marginTop = 1;
-            style.marginRight = -2;
-            style.marginBottom = 1;
+            ApplyRootStyle();
 
             _target = target;
             _property = property;
             Build(methodName, buttonLabel);
+        }
+
+        /// <summary>
+        /// Prosty przycisk odpalający podaną akcję — bez targetu, refleksji i parametrów.
+        /// </summary>
+        public InspectorButtonElement(Action clickEvent, string buttonLabel)
+        {
+            ApplyRootStyle();
+
+            _clickEvent = clickEvent;
+            Build(null, buttonLabel);
+        }
+
+        private void ApplyRootStyle()
+        {
+            style.marginLeft = 3;
+            style.marginTop = 1;
+            style.marginRight = -2;
+            style.marginBottom = 1;
         }
 
         private void Build(string methodName, string buttonLabel)
@@ -57,7 +74,7 @@ namespace fefek5.Toys.Editor.VisualElements
                 ? _target?.GetType().GetMethod(methodName, METHOD_FLAGS)
                 : null;
 
-            var button = new Button(CallMethod) {
+            var button = new Button(_clickEvent ?? CallMethod) {
                 text = buttonLabel,
                 style = {
                     marginLeft = 0,
@@ -66,6 +83,12 @@ namespace fefek5.Toys.Editor.VisualElements
                     marginBottom = 0,
                 }
             };
+
+            if (_clickEvent != null)
+            {
+                Add(button);
+                return;
+            }
 
             if (_method == null)
             {
