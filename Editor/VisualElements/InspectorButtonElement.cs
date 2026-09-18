@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using UnityEditor;
+using fefek5.Toys.Editor.Icons;
 using fefek5.Toys.Runtime.Extensions;
 using UnityEditor.UIElements;
 using UnityEngine;
@@ -209,7 +210,7 @@ namespace fefek5.Toys.Editor.VisualElements
         // żeby obrót nie ruszał layoutu toggla. Obrót animowany przez transition.
         private static VisualElement ApplyDropdownIcon(Button toggle)
         {
-            var texture = LoadIcon(DROPDOWN_ICON_NAME);
+            EditorIconsDatabase.TryGetIcon<Texture2D>(DROPDOWN_ICON_NAME, out var texture);
 
             Color tint = new Color32(0x68, 0x68, 0x68, 0xFF);
 
@@ -242,15 +243,6 @@ namespace fefek5.Toys.Editor.VisualElements
 
             toggle.Add(icon);
             return icon;
-        }
-
-        private static Texture2D LoadIcon(string name)
-        {
-            var guids = AssetDatabase.FindAssets($"{name} t:Texture2D");
-            if (guids.Length <= 0) return null;
-
-            var path = AssetDatabase.GUIDToAssetPath(guids[0]);
-            return AssetDatabase.LoadAssetAtPath<Texture2D>(path);
         }
 
         private void BuildMethodMissingUI(Button button, string methodName)
