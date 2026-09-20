@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using UnityEngine;
 
 namespace fefek5.Toys.Runtime.Extensions
 {
@@ -123,5 +124,91 @@ namespace fefek5.Toys.Runtime.Extensions
             
             return $"<a href=\"file:///{path}\">{displayText}</a>";
         }
+
+        /// <summary>
+        /// Wraps the string in a rich text color tag, as supported by the Unity console.
+        /// </summary>
+        /// <param name="val">Text</param>
+        /// <param name="color">The color to apply.</param>
+        /// <returns>The text wrapped in a color tag, or the original value if it is blank.</returns>
+        public static string SetColor(this string val, Color color) =>
+            val.SetColor(color.ToHex());
+
+        /// <summary>
+        /// Wraps the string in a rich text color tag, as supported by the Unity console.
+        /// </summary>
+        /// <param name="val">Text</param>
+        /// <param name="hexOrName">A hexadecimal color (e.g. "#FF0000") or a rich text color name (e.g. "red").</param>
+        /// <returns>The text wrapped in a color tag, or the original value if it or the color is blank.</returns>
+        public static string SetColor(this string val, string hexOrName) =>
+            val.IsBlank() || hexOrName.IsBlank() ? val : $"<color={hexOrName}>{val}</color>";
+
+        /// <summary>
+        /// Wraps the string in a rich text bold tag, as supported by the Unity console.
+        /// </summary>
+        /// <param name="val">Text</param>
+        /// <returns>The text wrapped in a bold tag, or the original value if it is blank.</returns>
+        public static string SetBold(this string val) =>
+            val.IsBlank() ? val : $"<b>{val}</b>";
+
+        /// <summary>
+        /// Wraps the string in a rich text italic tag, as supported by the Unity console.
+        /// </summary>
+        /// <param name="val">Text</param>
+        /// <returns>The text wrapped in an italic tag, or the original value if it is blank.</returns>
+        public static string SetItalic(this string val) =>
+            val.IsBlank() ? val : $"<i>{val}</i>";
+
+        /// <summary>
+        /// Wraps the string in a rich text underline tag. Rendered by TextMeshPro; the Unity console ignores it.
+        /// </summary>
+        /// <param name="val">Text</param>
+        /// <returns>The text wrapped in an underline tag, or the original value if it is blank.</returns>
+        public static string SetUnderline(this string val) =>
+            val.IsBlank() ? val : $"<u>{val}</u>";
+
+        /// <summary>
+        /// Ensures the string starts with the given prefix, adding it only if it is missing.
+        /// </summary>
+        /// <param name="val">Text</param>
+        /// <param name="prefix">The prefix to apply.</param>
+        /// <returns>The text with the prefix, or the original value if it or the prefix is blank.</returns>
+        public static string SetPrefix(this string val, string prefix) =>
+            val.IsBlank() || prefix.IsBlank() || val.StartsWith(prefix, StringComparison.Ordinal)
+                ? val
+                : prefix + val;
+
+        /// <summary>
+        /// Ensures the string ends with the given suffix, adding it only if it is missing.
+        /// </summary>
+        /// <param name="val">Text</param>
+        /// <param name="suffix">The suffix to apply.</param>
+        /// <returns>The text with the suffix, or the original value if it or the suffix is blank.</returns>
+        public static string SetSuffix(this string val, string suffix) =>
+            val.IsBlank() || suffix.IsBlank() || val.EndsWith(suffix, StringComparison.Ordinal)
+                ? val
+                : val + suffix;
+
+        /// <summary>
+        /// Removes the given prefix from the start of the string, if it is present.
+        /// </summary>
+        /// <param name="val">Text</param>
+        /// <param name="prefix">The prefix to remove.</param>
+        /// <returns>The text without the prefix, or the original value if it does not start with it.</returns>
+        public static string RemovePrefix(this string val, string prefix) =>
+            val.IsBlank() || prefix.IsBlank() || !val.StartsWith(prefix, StringComparison.Ordinal)
+                ? val
+                : val[prefix.Length..];
+
+        /// <summary>
+        /// Removes the given suffix from the end of the string, if it is present.
+        /// </summary>
+        /// <param name="val">Text</param>
+        /// <param name="suffix">The suffix to remove.</param>
+        /// <returns>The text without the suffix, or the original value if it does not end with it.</returns>
+        public static string RemoveSuffix(this string val, string suffix) =>
+            val.IsBlank() || suffix.IsBlank() || !val.EndsWith(suffix, StringComparison.Ordinal)
+                ? val
+                : val[..^suffix.Length];
     }
 }
