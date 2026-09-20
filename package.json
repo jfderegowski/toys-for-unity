@@ -2,11 +2,23 @@
   "name": "com.fefek5.toys-for-unity",
   "version": "0.0.1",
   "displayName": "Toys",
-  "description": "Collection of useful toys for Unity.",
+  "description": "Collection of useful toys for Unity: extension methods, inspector attributes and UI Toolkit elements.",
   "unity": "6000.0",
+  "license": "LGPL-3.0-only",
+  "documentationUrl": "https://github.com/jfderegowski/toys-for-unity#readme",
+  "changelogUrl": "https://github.com/jfderegowski/toys-for-unity/blob/main/CHANGELOG.md",
+  "licensesUrl": "https://github.com/jfderegowski/toys-for-unity/blob/main/LICENSE.md",
   "dependencies": {
     "com.unity.mathematics": "1.3.3"
   },
+  "keywords": [
+    "toys",
+    "utilities",
+    "extensions",
+    "ui-toolkit",
+    "editor"
+  ],
+  "category": "Tools",
   "author": {
     "name": "fefek5",
     "url": "https://github.com/jfderegowski"
