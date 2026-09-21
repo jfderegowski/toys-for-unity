@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-09-21
+
+### Added
+
+- `SelectTypeAttribute` with its drawer: a foldout for a `[SerializeReference]` field with a
+  dropdown of every concrete type assignable to it, which creates the picked type in place of
+  the current value. On a list or an array it draws each element.
+- `TypeExtensions.GetAssignableTypes` and `TypeExtensions.GetDisplayName`, shared by
+  `SelectTypeDrawer` and `SerializeReferenceListElement`.
+- `ConvertToColor` and `ConvertToColorHex` string extensions, which pick a color from the
+  string's hash code.
+
 ## [0.0.1] - 2026-09-20
 
 ### Added
@@ -25,5 +37,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `MonoBehaviourEditor` and serialized property extensions.
 - `EditorIconsDatabase` for built-in editor icon lookup.
 
-[Unreleased]: https://github.com/jfderegowski/toys-for-unity/compare/v0.0.1...HEAD
+[Unreleased]: https://github.com/jfderegowski/toys-for-unity/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/jfderegowski/toys-for-unity/compare/v0.0.1...v0.1.0
 [0.0.1]: https://github.com/jfderegowski/toys-for-unity/releases/tag/v0.0.1

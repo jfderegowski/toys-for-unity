@@ -46,7 +46,7 @@ See [CHANGELOG.md](CHANGELOG.md) for what changed between versions.
 | Area | What is in it |
 | --- | --- |
 | `Runtime/Extensions` | Extension methods for common Unity and BCL types, including UI Toolkit's `VisualElement` and `UQueryBuilder`. |
-| `Runtime/Attributes` | `InspectorButtonAttribute`, `SerializeReferenceListAttribute`. |
+| `Runtime/Attributes` | `InspectorButtonAttribute`, `SelectTypeAttribute`, `SerializeReferenceListAttribute`. |
 | `Runtime/HasValue` | `HasValue<T>` optional-value type. |
 | `Editor/Drawers` | Property drawers backing the runtime attributes. |
 | `Editor/VisualElements` | `Button`, `FoldoutElement`, `InspectorButtonElement`, `SerializeReferenceListElement`. |

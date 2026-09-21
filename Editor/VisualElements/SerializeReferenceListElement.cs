@@ -1,7 +1,6 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
+using fefek5.Toys.Editor.Extensions;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -14,8 +13,6 @@ namespace fefek5.Toys.Editor.VisualElements
     /// </summary>
     public class SerializeReferenceListElement : ListView
     {
-        private const BindingFlags CONSTRUCTOR_FLAGS = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
-
         private readonly SerializedProperty _property;
         private readonly Type _elementType;
 
@@ -41,11 +38,11 @@ namespace fefek5.Toys.Editor.VisualElements
         {
             var menu = new GenericMenu();
 
-            foreach (var type in GetAssignableTypes(_elementType).OrderBy(GetMenuName))
-                menu.AddItem(new GUIContent(GetMenuName(type)), false, () => AddElement(type));
+            foreach (var type in _elementType.GetAssignableTypes().OrderBy(type => type.GetDisplayName()))
+                menu.AddItem(new GUIContent(type.GetDisplayName()), false, () => AddElement(type));
 
             if (menu.GetItemCount() == 0)
-                menu.AddDisabledItem(new GUIContent($"No types assignable to {GetMenuName(_elementType)}"));
+                menu.AddDisabledItem(new GUIContent($"No types assignable to {_elementType.GetDisplayName()}"));
 
             menu.DropDown(position);
         }
@@ -58,45 +55,6 @@ namespace fefek5.Toys.Editor.VisualElements
             _property.GetArrayElementAtIndex(index).managedReferenceValue = Activator.CreateInstance(type, true);
 
             _property.serializedObject.ApplyModifiedProperties();
-        }
-
-        private static IEnumerable<Type> GetAssignableTypes(Type elementType)
-        {
-            // Searching by the generic definition also finds generic types like Foo<T> : StatTransport<T>.
-            var searchType = elementType.IsGenericType ? elementType.GetGenericTypeDefinition() : elementType;
-
-            return TypeCache.GetTypesDerivedFrom(searchType)
-                .Prepend(elementType)
-                .Select(type => type.IsGenericTypeDefinition ? CloseGeneric(type, elementType) : type)
-                .Where(type => type is { IsClass: true, IsAbstract: false, ContainsGenericParameters: false } &&
-                               elementType.IsAssignableFrom(type) &&
-                               !typeof(UnityEngine.Object).IsAssignableFrom(type) &&
-                               type.GetConstructor(CONSTRUCTOR_FLAGS, null, Type.EmptyTypes, null) != null)
-                .Distinct();
-        }
-
-        private static Type CloseGeneric(Type definition, Type elementType)
-        {
-            var arguments = elementType.GetGenericArguments();
-            if (definition.GetGenericArguments().Length != arguments.Length) return null;
-
-            try
-            {
-                return definition.MakeGenericType(arguments);
-            }
-            catch (ArgumentException)
-            {
-                // Generic constraints not satisfied.
-                return null;
-            }
-        }
-
-        private static string GetMenuName(Type type)
-        {
-            var name = type.Name;
-            var arityIndex = name.IndexOf('`');
-
-            return ObjectNames.NicifyVariableName(arityIndex < 0 ? name : name[..arityIndex]);
         }
     }
 }

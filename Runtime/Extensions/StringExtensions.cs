@@ -107,7 +107,26 @@ namespace fefek5.Toys.Runtime.Extensions
                 ? new string(filteredChars.ToArray(), 0, lastValidIndex + 1)
                 : string.Empty;
         }
+
+        /// <summary>
+        /// Converting String to Color
+        /// </summary>
+        /// <param name="val">String to convert</param>
+        /// <returns>Color</returns>
+        public static Color ConvertToColor(this string val)
+        {
+            var hue = (uint)val.GetHashCode() / (float)uint.MaxValue;
+            return Color.HSVToRGB(hue, 0.6f, 1f);
+        }
         
+        /// <summary>
+        /// Converting String to Color Hex
+        /// </summary>
+        /// <param name="val">String to convert</param>
+        /// <returns>Color Hex</returns>
+        public static string ConvertToColorHex(this string val) => 
+            ColorUtility.ToHtmlStringRGB(val.ConvertToColor());
+
         /// <summary>
         /// Converts the input string to a file link.
         /// </summary>
