@@ -17,6 +17,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `SubAssetListElement`, a list of ScriptableObject sub-assets of the asset holding it, each a
   foldout with its inspector. The add button creates a sub-asset of the picked type, remove asks
   first, reordering is saved, and `ItemInfo` shows extra text in each header.
+- `FolderPathAttribute` and `FilePathAttribute` (both deriving from `PathAttribute`) for string
+  fields: a text field with a browse button that also takes a path dropped from the Project
+  window or the file explorer, and shows a missing path in yellow. Paths inside the project are
+  stored from the project folder unless `Relative = false`, or from another folder with
+  `Root = PathRoot.PersistentData`, `StreamingAssets` or `Custom`; `FilePathAttribute` takes extensions.
+- `PathField`, the abstract element behind them, with `FolderPathField` and `FilePathField`,
+  usable on their own in custom inspectors and windows.
+- `FolderPath` and `FilePath` structs holding a path and the `PathRoot` it starts from, set in the
+  constructor (`new FilePath("Stats.json", PathRoot.PersistentData)`, or a custom folder) and
+  drawn as a foldout with the full path in its header and the root and path inside. They have `FullPath`, `Exists`, `Name` and implicit
+  conversions to and from `string`; the attributes are only needed to limit file extensions.
+  `PathRootExtensions` resolves a plain string the same way.
 
 ## [0.1.0] - 2026-09-21
 
