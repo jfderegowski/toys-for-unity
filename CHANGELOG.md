@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `SelectTypeElement`, the foldout with a type dropdown that `SelectTypeDrawer` draws, usable on
+  its own in custom inspectors.
+- `TypeDropdownField`, a dropdown of the given types that only reports the pick, and
+  `TypeDropdownField.ShowMenu` with the same types as a menu for add buttons. `SelectTypeElement`
+  and `SerializeReferenceListElement` use them.
+- `SubAssetListElement`, a list of ScriptableObject sub-assets of the asset holding it, each a
+  foldout with its inspector. The add button creates a sub-asset of the picked type, remove asks
+  first, reordering is saved, and `ItemInfo` shows extra text in each header.
+
 ## [0.1.0] - 2026-09-21
 
 ### Added

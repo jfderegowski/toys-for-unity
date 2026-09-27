@@ -1,8 +1,6 @@
 using System;
-using System.Linq;
 using fefek5.Toys.Editor.Extensions;
 using UnityEditor;
-using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace fefek5.Toys.Editor.VisualElements
@@ -31,20 +29,8 @@ namespace fefek5.Toys.Editor.VisualElements
             reorderable = true;
             reorderMode = ListViewReorderMode.Animated;
             virtualizationMethod = CollectionVirtualizationMethod.DynamicHeight;
-            overridingAddButtonBehavior = (_, button) => ShowTypesMenu(button.worldBound);
-        }
-
-        private void ShowTypesMenu(Rect position)
-        {
-            var menu = new GenericMenu();
-
-            foreach (var type in _elementType.GetAssignableTypes().OrderBy(type => type.GetDisplayName()))
-                menu.AddItem(new GUIContent(type.GetDisplayName()), false, () => AddElement(type));
-
-            if (menu.GetItemCount() == 0)
-                menu.AddDisabledItem(new GUIContent($"No types assignable to {_elementType.GetDisplayName()}"));
-
-            menu.DropDown(position);
+            overridingAddButtonBehavior = (_, button) =>
+                TypeDropdownField.ShowMenu(button.worldBound, _elementType.GetAssignableTypes(), AddElement);
         }
 
         private void AddElement(Type type)
