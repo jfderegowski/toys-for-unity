@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `Texture2DExtensions.ToSprite`, a sprite over the whole texture with a `FullRect` mesh by default.
+  The short `Sprite.Create` overload traces a tight mesh around every opaque pixel, which is
+  slow enough to stall a frame when creating sprites for avatars or downloaded icons at runtime.
 - `SelectTypeElement`, the foldout with a type dropdown that `SelectTypeDrawer` draws, usable on
   its own in custom inspectors.
 - `TypeDropdownField`, a dropdown of the given types that only reports the pick, and
