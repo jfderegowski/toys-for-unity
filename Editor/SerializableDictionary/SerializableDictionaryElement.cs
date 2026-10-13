@@ -6,7 +6,7 @@ using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace fefek5.Toys.Editor.VisualElements
+namespace fefek5.Toys.Editor
 {
     /// <summary>
     /// The entries of a SerializableDictionary as a reorderable list with a key and its value on each row. An entry the
