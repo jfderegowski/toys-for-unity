@@ -16,6 +16,7 @@ namespace fefek5.Toys.Editor.VisualElements
         private object[] _parameterValues;
 
         private readonly object _target;
+        private readonly object[] _targets;
         private readonly SerializedProperty _property;
         private readonly Action _clickEvent;
 
@@ -41,6 +42,23 @@ namespace fefek5.Toys.Editor.VisualElements
 
             _target = target;
             _property = property;
+            Build(methodName, buttonLabel);
+        }
+
+        /// <summary>
+        /// Przycisk dla kilku targetów naraz (np. <c>serializedObject.targetObjects</c> przy multi-edycji):
+        /// metoda szukana na pierwszym, wołana na każdym z tymi samymi parametrami.
+        /// </summary>
+        public InspectorButtonElement(object[] targets, string methodName)
+            : this(targets, methodName, ObjectNames.NicifyVariableName(methodName)) { }
+
+        /// <inheritdoc cref="InspectorButtonElement(object[], string)"/>
+        public InspectorButtonElement(object[] targets, string methodName, string buttonLabel)
+        {
+            ApplyRootStyle();
+
+            _targets = targets ?? Array.Empty<object>();
+            _target = _targets.FirstOrDefault();
             Build(methodName, buttonLabel);
         }
 
@@ -284,10 +302,20 @@ namespace fefek5.Toys.Editor.VisualElements
         {
             if (_method == null) return;
 
-            _method.Invoke(_target, GetParameters());
+            foreach (var target in _targets ?? new[] { _target })
+            {
+                // Metoda pochodzi z typu pierwszego targetu — inny typ może jej nie mieć.
+                if (!_method.IsStatic && !_method.DeclaringType!.IsInstanceOfType(target))
+                {
+                    Debug.LogWarning($"InspectorButtonElement: {target} has no method '{_methodName}', skipped.");
+                    continue;
+                }
 
-            if (_target is UnityEngine.Object targetObject)
-                EditorUtility.SetDirty(targetObject);
+                _method.Invoke(target, GetParameters());
+
+                if (target is UnityEngine.Object targetObject)
+                    EditorUtility.SetDirty(targetObject);
+            }
         }
 
         private object[] GetParameters() => _parameterValues ?? Array.Empty<object>();
@@ -477,7 +505,7 @@ namespace fefek5.Toys.Editor.VisualElements
                 var type = parameter.ParameterType;
                 var label = ObjectNames.NicifyVariableName(parameter.Name);
 
-                values[i] = GetDefaultValue(type);
+                values[i] = parameter.HasDefaultValue ? parameter.DefaultValue : GetDefaultValue(type);
 
                 var index = i; // capture dla closure
                 var field = BuildField(type, label, values[i], value => _parameterValues[index] = value);

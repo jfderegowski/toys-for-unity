@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `InspectorButtonElement(object[] targets, …)` for multi-object editing: the method is looked up
+  on the first target and called on each with the same parameters; a target whose type lacks
+  the method is skipped with a warning.
+- `InspectorButtonElement` starts a parameter field at the parameter's default value when the
+  method declares one, e.g. `Grant(int quantity = 1)`, instead of the type's default.
+
 - `Texture2DExtensions.ToSprite`, a sprite over the whole texture with a `FullRect` mesh by default.
   The short `Sprite.Create` overload traces a tight mesh around every opaque pixel, which is
   slow enough to stall a frame when creating sprites for avatars or downloaded icons at runtime.
