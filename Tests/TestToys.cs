@@ -1,4 +1,5 @@
-using System;
+﻿using System;
+using fefek5.Toys.Runtime;
 using fefek5.Toys.Runtime.Attributes;
 using fefek5.Toys.Runtime.Types;
 using UnityEngine;
@@ -27,6 +28,20 @@ namespace Tests
         // Zwykłe pola obok, żeby sprawdzić rozmieszczenie buttonów między polami.
         [SerializeField] private string _someString;
         [SerializeField] private SomeStruct _nested;
+
+        // --- SerializableDictionary -------------------------------------------------
+
+        // Klucze proste: + daje nieużyty klucz, powtórzony klucz świeci na żółto.
+        [SerializeField] private SerializableDictionary<string, int> _stringToInt = new();
+        [SerializeField] private SerializableDictionary<KeyCode, GameObject> _keyToObject = new();
+
+        // Wartość rozwijana: foldout w kolumnie wartości.
+        [SerializeField] private SerializableDictionary<int, SomeStruct> _intToNested = new();
+
+        [InspectorButton]
+        private void LogDictionaries() =>
+            Debug.Log($"stringToInt: {string.Join(", ", _stringToInt)} | keyToObject: {string.Join(", ", _keyToObject)}" +
+                      $" | intToNested: {_intToNested.Count}");
 
         // --- Metody z atrybutem [InspectorButton] (ścieżka Editor-a) ----------------
 

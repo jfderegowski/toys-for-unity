@@ -49,8 +49,9 @@ See [CHANGELOG.md](CHANGELOG.md) for what changed between versions.
 | `Runtime/Attributes` | `InspectorButtonAttribute`, `SelectTypeAttribute`, `SerializeReferenceListAttribute`, `FolderPathAttribute`, `FilePathAttribute`. |
 | `Runtime/Types` | `FolderPath`, `FilePath`, `PathRoot`, `InspectorButton`. |
 | `Runtime/HasValue` | `HasValue<T>` optional-value type. |
+| `Runtime/SerializableDictionary` | `SerializableDictionary<TKey, TValue>`, a `Dictionary` Unity serializes and draws in the inspector. |
 | `Editor/Drawers` | Property drawers backing the runtime attributes. |
-| `Editor/VisualElements` | `Button`, `FoldoutElement`, `InspectorButtonElement`, `SerializeReferenceListElement`, `FolderPathField`, `FilePathField`. |
+| `Editor/VisualElements` | `Button`, `FoldoutElement`, `InspectorButtonElement`, `SerializeReferenceListElement`, `SerializableDictionaryElement`, `FolderPathField`, `FilePathField`. |
 | `Editor/Icons` | `EditorIconsDatabase` for built-in editor icon lookup. |
 
 ## License

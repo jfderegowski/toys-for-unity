@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `SerializableDictionary<TKey, TValue>`, a `Dictionary<TKey, TValue>` Unity serializes as a list of key-value
+  entries. The inspector shows a reorderable list with the key and value side by side; an entry the dictionary
+  leaves out (a null key, or a key already used above) stays in the list, marked with a warning icon, so editing keys loses
+  nothing, and the first entry with a key wins. The add button picks an unused key for number, string, enum and
+  bool keys, and builds the first entry of an empty dictionary with its key and value constructors so field
+  initializers apply. `SerializableDictionaryElement` draws it and works on its own in custom inspectors.
 - `InspectorButtonElement(object[] targets, …)` for multi-object editing: the method is looked up
   on the first target and called on each with the same parameters; a target whose type lacks
   the method is skipped with a warning.
