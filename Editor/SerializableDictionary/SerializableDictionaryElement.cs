@@ -153,7 +153,17 @@ namespace fefek5.Toys.Editor
 
             for (var i = 0; i < _entries.arraySize; i++)
             {
-                var key = _entries.GetArrayElementAtIndex(i).FindPropertyRelative(KEY_PROP_NAME).boxedValue;
+                var keyProperty = _entries.GetArrayElementAtIndex(i).FindPropertyRelative(KEY_PROP_NAME);
+
+                // A reference to an asset that is gone reads as null here, but the dictionary still holds it.
+                if (keyProperty.propertyType == SerializedPropertyType.ObjectReference &&
+                    !keyProperty.objectReferenceValue && keyProperty.objectReferenceInstanceIDValue != 0)
+                {
+                    _problems[i] = "The key object is missing. The dictionary still holds this entry, but nothing can find it.";
+                    continue;
+                }
+
+                var key = keyProperty.boxedValue;
 
                 if (key is null)
                     _problems[i] = "The key is empty, so the dictionary leaves this entry out.";
@@ -187,13 +197,17 @@ namespace fefek5.Toys.Editor
             var index = _entries.arraySize++;
             var entry = _entries.GetArrayElementAtIndex(index);
 
-            if (index > 0)
-                SetUnusedKey(entry.FindPropertyRelative(KEY_PROP_NAME), index);
-            else
+            if (index == 0)
             {
                 SetConstructedValue(entry.FindPropertyRelative(KEY_PROP_NAME));
                 SetConstructedValue(entry.FindPropertyRelative(VALUE_PROP_NAME));
             }
+
+            var otherKeys = Enumerable.Range(0, index)
+                .Select(i => _entries.GetArrayElementAtIndex(i).FindPropertyRelative(KEY_PROP_NAME))
+                .ToList();
+
+            SetUnusedKey(entry.FindPropertyRelative(KEY_PROP_NAME), otherKeys);
 
             serializedObject.ApplyModifiedProperties();
         }
@@ -213,11 +227,17 @@ namespace fefek5.Toys.Editor
             }
         }
 
-        private void SetUnusedKey(SerializedProperty key, int count)
+        /// <summary>
+        /// Gives the entry the add button just made a key none of <paramref name="otherKeys"/> has. The entry is a copy
+        /// of the last one, or the constructed default when it is the first. Override it for a key type this cannot
+        /// pick for, such as a struct whose valid keys come from elsewhere, and draw the dictionary with the subclass.
+        /// </summary>
+        /// <param name="key">The key property of the new entry.</param>
+        /// <param name="otherKeys">The key properties of the entries above it, empty for the first entry.</param>
+        protected virtual void SetUnusedKey(SerializedProperty key, IReadOnlyList<SerializedProperty> otherKeys)
         {
-            var otherKeys = Enumerable.Range(0, count)
-                .Select(i => _entries.GetArrayElementAtIndex(i).FindPropertyRelative(KEY_PROP_NAME))
-                .ToList();
+            if (otherKeys.Count == 0)
+                return;
 
             switch (key.propertyType)
             {

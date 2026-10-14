@@ -13,6 +13,15 @@ namespace fefek5.Toys.Runtime
     /// in the list, so adding or retyping a key in the inspector loses nothing, but it is left out of the dictionary
     /// and the inspector marks it. The first entry with a key wins. The comparer is not serialized: after loading,
     /// the dictionary uses the default one.
+    /// <para>
+    /// A struct used as the key should implement <see cref="IEquatable{T}"/> and <see cref="object.GetHashCode"/>:
+    /// without them the default comparer falls back to reflection over its fields, which is slow.
+    /// </para>
+    /// <para>
+    /// A <see cref="UnityEngine.Object"/> key whose asset is gone is still an object to C#, so the dictionary keeps
+    /// its entry; the inspector marks it as missing. It is not dropped here, since an asset referenced by the key
+    /// may not be loaded yet while this one is deserialized.
+    /// </para>
     /// </remarks>
     [Serializable]
     public class SerializableDictionary<TKey, TValue> : Dictionary<TKey, TValue>, ISerializationCallbackReceiver
