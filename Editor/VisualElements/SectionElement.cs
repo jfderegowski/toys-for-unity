@@ -11,9 +11,8 @@ namespace fefek5.Toys.Editor.VisualElements
     /// <see cref="VisualElement.Add"/> puts the fields under the title. Clicking the title collapses and expands it,
     /// animated; it starts collapsed.
     /// </summary>
-    public class SectionElement : VisualElement
+    public class SectionElement : FoldoutElement
     {
-        private const float ICON_SIZE = 16;
         private const float ARROW_SIZE = 12;
         private const float CORNER_RADIUS = 4;
         private const float HEADER_SPACING = 5;
@@ -21,45 +20,21 @@ namespace fefek5.Toys.Editor.VisualElements
         private const string ARROW_ICON_NAME = "DropdownArrow";
 
         private readonly string _saveKey;
-        private readonly Image _arrow;
-        private readonly VisualElement _clip;
-        private readonly VisualElement _content;
 
-        private bool _expanded;
+        private Image _arrow;
+        private VisualElement _clip;
+        private VisualElement _content;
 
-        public Image Icon { get; }
-
-        public Label Title { get; }
-
-        public override VisualElement contentContainer => _content;
+        public Label Title { get; private set; }
 
         /// <summary>
-        /// Whether the fields are shown. With a save key it is kept in the <see cref="EditorPrefs"/>.
+        /// Whether the fields are shown, the <see cref="Foldout.value"/>. With a save key it is kept in the
+        /// <see cref="EditorPrefs"/>.
         /// </summary>
         public bool Expanded
         {
-            get => _expanded;
-            set
-            {
-                _expanded = value;
-
-                _arrow.style.rotate = new Rotate(new Angle(value ? 0 : -90, AngleUnit.Degree));
-
-                // Not laid out yet: it starts closed and, when expanded, opens at once to the height of the content,
-                // through the GeometryChangedEvent of the content. Changes after that are animated.
-                if (panel == null)
-                {
-                    _clip.style.height = 0;
-                }
-                else
-                {
-                    _clip.style.transitionDuration = new List<TimeValue> { new(ANIMATION_MS, TimeUnit.Millisecond) };
-                    _clip.style.height = value ? _content.layout.height : 0;
-                }
-
-                if (_saveKey != null)
-                    EditorPrefs.SetBool(_saveKey, value);
-            }
+            get => value;
+            set => this.value = value;
         }
 
         /// <param name="title">Text of the header.</param>
@@ -69,9 +44,27 @@ namespace fefek5.Toys.Editor.VisualElements
         /// when the inspector is rebuilt; null keeps it only while this element lives.
         /// </param>
         public SectionElement(string title, Texture icon = null, string saveKey = null)
+            : base(title, icon: icon)
         {
             _saveKey = saveKey;
 
+            SetValueWithoutNotify(saveKey != null && EditorPrefs.GetBool(saveKey));
+            Build();
+        }
+
+        /// <summary>
+        /// The property under its name, with its fields. Its collapsed state is the one of the property.
+        /// </summary>
+        /// <param name="property">Property</param>
+        /// <param name="icon">Icon before the name; none when null.</param>
+        public SectionElement(SerializedProperty property, Texture icon = null)
+            : base(property, icon: icon)
+        {
+            Build();
+        }
+
+        private void Build()
+        {
             style.marginTop = 4;
             style.marginBottom = 4;
             style.paddingTop = 5;
@@ -84,14 +77,17 @@ namespace fefek5.Toys.Editor.VisualElements
             style.borderBottomRightRadius = CORNER_RADIUS;
             style.backgroundColor = Color.Lerp(EditorColors.InspectorBackground, Color.black, 0.1f);
 
-            var header = new VisualElement {
-                style = {
-                    flexDirection = FlexDirection.Row,
-                    alignItems = Align.Center
-                }
-            };
+            // The header takes the place of the toggle of the foldout, without its inspector margins.
+            var toggle = Input.parent;
 
-            header.RegisterCallback<ClickEvent>(_ => Expanded = !Expanded);
+            toggle.style.marginTop = 0;
+            toggle.style.marginRight = 0;
+            toggle.style.marginBottom = 0;
+            toggle.style.marginLeft = 0;
+            Input.style.alignItems = Align.Center;
+
+            // The arrow of the foldout gives way to the one at the right edge.
+            Input.Q(className: checkmarkUssClassName).style.display = DisplayStyle.None;
 
             EditorIconsDatabase.TryGetIcon<Texture2D>(ARROW_ICON_NAME, out var arrowIcon);
 
@@ -109,27 +105,19 @@ namespace fefek5.Toys.Editor.VisualElements
                 }
             };
 
-            Icon = new Image {
-                image = icon,
-                style = {
-                    width = ICON_SIZE,
-                    height = ICON_SIZE,
-                    marginRight = 5,
-                    display = icon ? DisplayStyle.Flex : DisplayStyle.None
-                }
-            };
+            Input.Add(_arrow);
 
-            Title = new Label(title) {
-                style = {
-                    fontSize = 14,
-                    unityTextAlign = TextAnchor.MiddleLeft
-                }
-            };
+            Title = Input.Q<Label>(className: textUssClassName);
 
-            header.Add(Icon);
-            header.Add(Title);
-            header.Add(_arrow);
-            hierarchy.Add(header);
+            // Spaced as a plain label, not as the text of a foldout.
+            if (Title != null)
+            {
+                Title.style.marginLeft = 0;
+                Title.style.paddingTop = 0;
+                Title.style.paddingLeft = 1;
+                Title.style.fontSize = 14;
+                Title.style.unityTextAlign = TextAnchor.MiddleLeft;
+            }
 
             // The clip is what grows and shrinks, through a transition of its height. The content is positioned
             // absolutely, so it keeps its full height inside it, which is the height the clip grows to.
@@ -141,27 +129,47 @@ namespace fefek5.Toys.Editor.VisualElements
                 }
             };
 
-            _content = new VisualElement {
-                style = {
-                    position = Position.Absolute,
-                    top = 0,
-                    left = 0,
-                    right = 0,
-                    paddingTop = HEADER_SPACING,
-                    paddingLeft = 15
-                }
-            };
+            _content = contentContainer;
+            _content.style.position = Position.Absolute;
+            _content.style.top = 0;
+            _content.style.left = 0;
+            _content.style.right = 0;
+            _content.style.marginLeft = 0;
+            _content.style.paddingTop = HEADER_SPACING;
+            _content.style.paddingLeft = 15;
 
-            // Expanded, the clip follows the content, e.g. a list that gets a new entry.
-            _content.RegisterCallback<GeometryChangedEvent>(_ => {
-                if (_expanded)
-                    _clip.style.height = _content.layout.height;
+            // The foldout hides the content when it collapses, which shows and hides it as the content's geometry
+            // changes; the clip and the arrow follow it there. Expanded, the clip also follows the content, e.g. a
+            // list that gets a new entry.
+            _content.RegisterCallback<GeometryChangedEvent>(_ => Refresh());
+
+            // A click or Expanded animates, keeping the content shown while the clip closes over it.
+            RegisterCallback<ChangeEvent<bool>>(evt => {
+                // A toggle among the fields.
+                if (evt.target != this)
+                    return;
+
+                _clip.style.transitionDuration = new List<TimeValue> { new(ANIMATION_MS, TimeUnit.Millisecond) };
+                _content.style.display = DisplayStyle.Flex;
+                Refresh();
+
+                if (_saveKey != null)
+                    EditorPrefs.SetBool(_saveKey, evt.newValue);
             });
 
             _clip.Add(_content);
             hierarchy.Add(_clip);
 
-            Expanded = saveKey != null && EditorPrefs.GetBool(saveKey);
+            Refresh();
+        }
+
+        private void Refresh()
+        {
+            _arrow.style.rotate = new Rotate(new Angle(value ? 0 : -90, AngleUnit.Degree));
+
+            // Not laid out yet: expanded, it opens at once to the height of the content, through its
+            // GeometryChangedEvent.
+            _clip.style.height = value && panel != null ? _content.layout.height : 0;
         }
     }
 }
