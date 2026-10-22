@@ -7,7 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-10-22
+
 ### Added
+
+- `SectionElement`, a group of fields under a title with an optional icon, on a background a shade
+  darker than the inspector. Clicking the title collapses and expands it, animated; it starts
+  collapsed, and a save key keeps its state in the `EditorPrefs` when the inspector is rebuilt.
+  Made from a `SerializedProperty`, it draws the property's fields under its name and icon and
+  keeps the collapsed state of the property. It is a `FoldoutElement`.
+- `FoldoutElement` takes an icon, shown before its label (`Icon`).
+- `EditorColors`, colors of the editor that follow its theme: `InspectorBackground` and
+  `FoldoutArrow`.
 
 - `SerializableDictionary<TKey, TValue>`, a `Dictionary<TKey, TValue>` Unity serializes as a list of key-value
   entries. The inspector shows a reorderable list with the key and value side by side; an entry the dictionary
@@ -77,6 +88,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `MonoBehaviourEditor` and serialized property extensions.
 - `EditorIconsDatabase` for built-in editor icon lookup.
 
-[Unreleased]: https://github.com/jfderegowski/toys-for-unity/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/jfderegowski/toys-for-unity/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/jfderegowski/toys-for-unity/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/jfderegowski/toys-for-unity/compare/v0.0.1...v0.1.0
 [0.0.1]: https://github.com/jfderegowski/toys-for-unity/releases/tag/v0.0.1
