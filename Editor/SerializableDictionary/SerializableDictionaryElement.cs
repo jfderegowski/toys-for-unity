@@ -157,7 +157,7 @@ namespace fefek5.Toys.Editor
 
                 // A reference to an asset that is gone reads as null here, but the dictionary still holds it.
                 if (keyProperty.propertyType == SerializedPropertyType.ObjectReference &&
-                    !keyProperty.objectReferenceValue && keyProperty.objectReferenceInstanceIDValue != 0)
+                    !keyProperty.objectReferenceValue && HoldsObjectReference(keyProperty))
                 {
                     _problems[i] = "The key object is missing. The dictionary still holds this entry, but nothing can find it.";
                     continue;
@@ -174,6 +174,14 @@ namespace fefek5.Toys.Editor
             foreach (var (row, index) in _boundRows)
                 ShowProblem(row, index);
         }
+
+        // Unity 6.4 replaces the instance id with EntityId, and from 6.5 the old property no longer compiles.
+        private static bool HoldsObjectReference(SerializedProperty property) =>
+#if UNITY_6000_4_OR_NEWER
+            property.objectReferenceEntityIdValue.IsValid();
+#else
+            property.objectReferenceInstanceIDValue != 0;
+#endif
 
         private void ShowProblem(VisualElement row, int index)
         {
