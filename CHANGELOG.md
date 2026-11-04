@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- `TypeDropdownField` calls `onPicked` only for its own value. A change of its label reached the same
+  callback, and in `SelectTypeElement` that replaced the value with a new instance of its type.
+
 ### Added
 
 - `SelectTypeElement` takes an optional `createContent`, which builds what the foldout shows for the

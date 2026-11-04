@@ -34,7 +34,11 @@ namespace fefek5.Toys.Editor.VisualElements
             choices = _types.Select(type => type.GetDisplayName()).Prepend(NONE_CHOICE).ToList();
             SetValueWithoutNotify(current?.GetDisplayName() ?? NONE_CHOICE);
 
-            this.RegisterValueChangedCallback(_ => onPicked?.Invoke(SelectedType));
+            // Its label reports a change of its text the same way, and that event reaches here too.
+            this.RegisterValueChangedCallback(evt => {
+                if (evt.target == this)
+                    onPicked?.Invoke(SelectedType);
+            });
         }
 
         /// <summary>
