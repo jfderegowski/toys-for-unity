@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - `SelectTypeElement` takes an optional `createContent`, which builds what the foldout shows for the
-  current value in place of its fields.
+  current value in place of its fields, and a `Label` to set the name before the dropdown.
 
 ### Changed
 

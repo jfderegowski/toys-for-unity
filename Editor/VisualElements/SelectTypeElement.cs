@@ -19,6 +19,20 @@ namespace fefek5.Toys.Editor.VisualElements
         private readonly List<Type> _types;
         private readonly Func<SerializedProperty, VisualElement> _createContent;
 
+        private string _label;
+        private DropdownField _dropdown;
+
+        /// <summary>The name before the dropdown; at the start the display name of the property.</summary>
+        public string Label
+        {
+            get => _label;
+            set
+            {
+                _label = value;
+                _dropdown.label = value;
+            }
+        }
+
         /// <param name="property">The [SerializeReference] property</param>
         /// <param name="fieldType">The type every type to pick from is assignable to</param>
         /// <param name="createContent">
@@ -31,6 +45,7 @@ namespace fefek5.Toys.Editor.VisualElements
             _property = property;
             _types = fieldType.GetAssignableTypes().ToList();
             _createContent = createContent;
+            _label = property.displayName;
 
             Add(CreateFoldout());
         }
@@ -39,9 +54,10 @@ namespace fefek5.Toys.Editor.VisualElements
         {
             // The label is the dropdown's, so Unity lines the dropdown up with the other fields of the inspector.
             var dropdown = new TypeDropdownField(_types, _property.managedReferenceValue?.GetType(), OnPicked) {
-                label = _property.displayName,
+                label = _label,
                 style = { flexGrow = 1 }
             };
+            _dropdown = dropdown;
             dropdown.AddToClassList(BaseField<string>.alignedFieldUssClassName);
             ResetFoldoutStyles(dropdown);
 
