@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `SelectTypeElement` takes an optional `createContent`, which builds what the foldout shows for the
+  current value in place of its fields.
+
+### Changed
+
+- The type dropdown of `SelectTypeElement` lines up with the other fields of the inspector instead of
+  taking its width from the name of the type. The name of the property is now the label of the dropdown.
+
 ## [0.2.1] - 2026-11-04
 
 ### Fixed

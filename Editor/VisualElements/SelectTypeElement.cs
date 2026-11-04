@@ -17,26 +17,72 @@ namespace fefek5.Toys.Editor.VisualElements
     {
         private readonly SerializedProperty _property;
         private readonly List<Type> _types;
+        private readonly Func<SerializedProperty, VisualElement> _createContent;
 
-        public SelectTypeElement(SerializedProperty property, Type fieldType)
+        /// <param name="property">The [SerializeReference] property</param>
+        /// <param name="fieldType">The type every type to pick from is assignable to</param>
+        /// <param name="createContent">
+        /// Builds what the foldout shows for the current value, again after each pick, so it has to handle every type
+        /// and null; by default the foldout shows the fields of the value.
+        /// </param>
+        public SelectTypeElement(SerializedProperty property, Type fieldType,
+            Func<SerializedProperty, VisualElement> createContent = null)
         {
             _property = property;
             _types = fieldType.GetAssignableTypes().ToList();
+            _createContent = createContent;
 
             Add(CreateFoldout());
         }
 
         private FoldoutElement CreateFoldout()
         {
+            // The label is the dropdown's, so Unity lines the dropdown up with the other fields of the inspector.
             var dropdown = new TypeDropdownField(_types, _property.managedReferenceValue?.GetType(), OnPicked) {
+                label = _property.displayName,
                 style = { flexGrow = 1 }
             };
+            dropdown.AddToClassList(BaseField<string>.alignedFieldUssClassName);
+            ResetFoldoutStyles(dropdown);
 
             // The dropdown sits in the foldout's toggle, which would expand or collapse on the same click or key press.
             dropdown.RegisterCallback<PointerDownEvent>(evt => evt.StopPropagation());
             dropdown.RegisterCallback<NavigationSubmitEvent>(evt => evt.StopPropagation());
 
-            return new FoldoutElement(_property, dropdown);
+            FoldoutElement foldout;
+
+            if (_createContent == null)
+            {
+                foldout = new FoldoutElement(_property, dropdown) { text = string.Empty };
+            }
+            else
+            {
+                foldout = new FoldoutElement(string.Empty, dropdown);
+                foldout.BindProperty(_property);
+                foldout.Add(_createContent(_property));
+            }
+
+            // The name is the dropdown's label now, and a click on it still has to fold.
+            dropdown.labelElement.RegisterCallback<ClickEvent>(_ => foldout.value = !foldout.value);
+
+            return foldout;
+        }
+
+        /// <summary>
+        /// The foldout's toggle styles every text inside it and an inspector field reaches past its parent on the
+        /// right, so without this the dropdown in the header looks different from one in a field below it.
+        /// </summary>
+        private static void ResetFoldoutStyles(DropdownField dropdown)
+        {
+            // Past the toggle the dropdown gets cut off.
+            dropdown.style.marginRight = 0;
+
+            dropdown.labelElement.style.marginLeft = 0;
+            dropdown.labelElement.style.paddingTop = 2;
+
+            var text = dropdown.Q(className: DropdownField.textUssClassName);
+            text.style.marginLeft = 0;
+            text.style.paddingTop = 0;
         }
 
         private void OnPicked(Type type)
