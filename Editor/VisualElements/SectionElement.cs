@@ -16,6 +16,9 @@ namespace fefek5.Toys.Editor.VisualElements
         private const float ARROW_SIZE = 12;
         private const float CORNER_RADIUS = 4;
         private const float HEADER_SPACING = 5;
+        // Inspector fields reach this far past the right edge of their parent, through a negative margin of Unity's
+        // inspector style, so the clip leaves room for it.
+        private const float FIELD_OVERHANG = 2;
         private const int ANIMATION_MS = 150;
         private const string ARROW_ICON_NAME = "DropdownArrow";
 
@@ -124,6 +127,7 @@ namespace fefek5.Toys.Editor.VisualElements
             _clip = new VisualElement {
                 style = {
                     overflow = Overflow.Hidden,
+                    marginRight = -FIELD_OVERHANG,
                     transitionProperty = new List<StylePropertyName> { "height" },
                     transitionTimingFunction = new List<EasingFunction> { new(EasingMode.EaseOutCubic) }
                 }
@@ -133,7 +137,7 @@ namespace fefek5.Toys.Editor.VisualElements
             _content.style.position = Position.Absolute;
             _content.style.top = 0;
             _content.style.left = 0;
-            _content.style.right = 0;
+            _content.style.right = FIELD_OVERHANG;
             _content.style.marginLeft = 0;
             _content.style.paddingTop = HEADER_SPACING;
             _content.style.paddingLeft = 15;

@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `TypeDropdownField` calls `onPicked` only for its own value. A change of its label reached the same
   callback, and in `SelectTypeElement` that replaced the value with a new instance of its type.
+- `SectionElement` no longer cuts off the right 2 pixels of its fields, e.g. the last button of a
+  row or the eyedropper of a color field. Inspector fields reach that far past their parent.
+- A `SerializableDictionary` drawn by a `PropertyField` takes its title from the label of the field,
+  which it used to ignore for the name of the property.
 
 ### Added
 
